@@ -45,28 +45,30 @@ async def upload_file(  # Fixed typo: uplaod_file -> upload_file
             shutil.copyfileobj(file.file, temp_file)
             
             
+        # Read file as bytes for ImageKit SDK v5.1
+        with open(temp_file_path, "rb") as f:
+            file_content = f.read()
+            
         upload_result = imagekit.files.upload(
-            file=open(temp_file_path, "rb"),
-            file_name=file.filename,
-            options={
-                "use_unique_file_name": True,
-                "tags": ["backend-upload"]
-            }
+            file=file_content,
+            file_name=file.filename
         )
 
-        # The new API returns a dict, so update the usage below
-        if upload_result.get("response_metadata", {}).get("http_status_code") == 200:
-            post = Post(  # Fixed typo: Port -> Post
+        # The new API returns an object with attributes
+        if upload_result and upload_result.url:
+            post = Post(
                 user_id=user.id,
                 caption=caption,
-                url=upload_result["url"],
+                url=upload_result.url,
                 file_type="video" if file.content_type.startswith("video") else "image",
-                file_name=upload_result["name"]
+                file_name=upload_result.name
             )
             session.add(post)
             await session.commit()
             await session.refresh(post)
-            return post  # Fixed typo: psot -> post
+            return post
+        else:
+            raise HTTPException(status_code=500, detail="Upload to ImageKit failed")
         
     except Exception as e:  # Fixed typo: execpt -> except
         raise HTTPException(status_code=500, detail=str(e))
@@ -109,7 +111,7 @@ async def get_feed(  # Fixed typo: get_fess -> get_feed
 
 
 
-@app.delete("/post/{post_id}")
+@app.delete("/posts/{post_id}")
 async def delete_post(
     post_id: str, 
     session: AsyncSession = Depends(get_async_session), 

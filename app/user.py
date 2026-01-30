@@ -6,11 +6,13 @@ from fastapi_users.authentication import JWTStrategy, AuthenticationBackend, Bea
 from fastapi_users.db import SQLAlchemyUserDatabase
 from app.db import get_user_db, User
 
-import secrets
+import os
+from dotenv import load_dotenv
 
-# Generate a cryptographically secure random secret
-SECRET = secrets.token_urlsafe(32)
-print(SECRET)
+load_dotenv()
+
+# Use a static secret from environment variables (critical for authentication to work across restarts)
+SECRET = os.getenv("JWT_SECRET", "fallback_secret_please_set_env_var")
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
