@@ -2,180 +2,714 @@ import streamlit as st
 import requests
 import base64
 import urllib.parse
+from datetime import datetime
 
 # Page config with custom theme
 st.set_page_config(
     page_title="SocialVibe - Share Your Moments", 
     layout="wide",
-    page_icon="📸"
+    page_icon="✨",
+    initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better UI
+# Modern Professional CSS
 st.markdown("""
 <style>
-    /* Main theme colors */
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* CSS Variables for theming - Professional Blue/Grey/Black */
     :root {
-        --primary-color: #667eea;
-        --secondary-color: #764ba2;
-        --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --primary: #0ea5e9;
+        --primary-dark: #0284c7;
+        --primary-light: #38bdf8;
+        --secondary: #06b6d4;
+        --accent: #22d3ee;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --bg-dark: #0a0a0f;
+        --bg-card: #15151d;
+        --bg-card-hover: #1f1f2a;
+        --text-primary: #f8fafc;
+        --text-secondary: #a1a1aa;
+        --text-muted: #71717a;
+        --border: #27272f;
+        --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #22d3ee 100%);
+        --gradient-card: linear-gradient(145deg, rgba(21, 21, 29, 0.95), rgba(10, 10, 15, 0.98));
+        --shadow-glow: 0 0 40px rgba(14, 165, 233, 0.12);
+        --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Global styles */
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    
+    /* Main app background */
+    .stApp {
+        background: linear-gradient(180deg, #0a0a0f 0%, #0d1117 50%, #0a0a0f 100%);
+        background-attachment: fixed;
+    }
+    
+    /* Add subtle animated background pattern */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(34, 211, 238, 0.03) 0%, transparent 40%);
+        pointer-events: none;
+        z-index: 0;
     }
     
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display: none;}
     
-    /* Custom header styling */
-    .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--bg-dark);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+    
+    /* ===== HEADER STYLES ===== */
+    .hero-header {
+        background: var(--gradient-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        border-radius: 24px;
+        padding: 3rem 2rem;
         margin-bottom: 2rem;
         text-align: center;
-        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-glow);
     }
     
-    .main-header h1 {
-        color: white !important;
+    .hero-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--gradient-primary);
+    }
+    
+    .hero-header h1 {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         font-size: 2.5rem;
-        margin: 0;
+        font-weight: 800;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.5px;
     }
     
-    .main-header p {
-        color: rgba(255,255,255,0.9);
+    .hero-header p {
+        color: var(--text-secondary);
         font-size: 1.1rem;
+        margin: 0;
+        font-weight: 400;
+    }
+    
+    .hero-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    /* ===== LOGIN PAGE STYLES ===== */
+    .login-container {
+        max-width: 420px;
+        margin: 2rem auto;
+        background: var(--gradient-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        border-radius: 28px;
+        padding: 3rem;
+        box-shadow: var(--shadow-glow), var(--shadow-card);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+    }
+    
+    .login-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .login-logo .logo-icon {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 1rem;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .login-logo h1 {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -1px;
+    }
+    
+    .login-logo p {
+        color: var(--text-secondary);
+        font-size: 1rem;
         margin-top: 0.5rem;
     }
     
-    /* Post card styling */
+    .login-divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        gap: 1rem;
+    }
+    
+    .login-divider::before,
+    .login-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+    
+    .login-divider span {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    /* ===== POST CARD STYLES ===== */
     .post-card {
-        background: white;
-        border-radius: 15px;
+        background: var(--gradient-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(14, 165, 233, 0.12);
+        border-radius: 20px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 1px solid #eee;
-        transition: transform 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
     
     .post-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        border-color: rgba(14, 165, 233, 0.25);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-glow), 0 20px 40px rgba(0, 0, 0, 0.3);
     }
     
     .post-header {
         display: flex;
         align-items: center;
         margin-bottom: 1rem;
+        gap: 12px;
     }
     
     .avatar {
-        width: 45px;
-        height: 45px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--gradient-primary);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-weight: bold;
+        font-weight: 700;
         font-size: 1.2rem;
-        margin-right: 12px;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+        flex-shrink: 0;
     }
     
     .user-info {
         flex: 1;
+        min-width: 0;
     }
     
     .username {
         font-weight: 600;
-        color: #333;
-        font-size: 1rem;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .post-date {
-        color: #888;
-        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
     }
     
     .caption {
-        color: #444;
-        font-size: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
         margin-top: 1rem;
-        line-height: 1.5;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 12px;
+        border-left: 3px solid var(--primary);
     }
     
-    /* Login card */
-    .login-card {
-        max-width: 450px;
-        margin: 3rem auto;
-        background: white;
+    /* ===== UPLOAD SECTION STYLES ===== */
+    .upload-zone {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+        border: 2px dashed rgba(99, 102, 241, 0.3);
         border-radius: 20px;
-        padding: 2.5rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    }
-    
-    /* Upload section */
-    .upload-section {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-radius: 15px;
-        padding: 2rem;
+        padding: 3rem 2rem;
         text-align: center;
-    }
-    
-    /* Success/Error messages */
-    .stSuccess, .stError {
-        border-radius: 10px;
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg {
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    /* Button styling */
-    .stButton > button {
-        border-radius: 25px;
-        font-weight: 600;
         transition: all 0.3s ease;
+        margin: 1rem 0;
+    }
+    
+    .upload-zone:hover {
+        border-color: rgba(99, 102, 241, 0.6);
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        box-shadow: var(--shadow-glow);
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        opacity: 0.8;
+    }
+    
+    .upload-text {
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+    
+    .upload-text strong {
+        color: var(--primary-light);
+    }
+    
+    /* ===== TIPS CARD ===== */
+    .tips-card {
+        background: var(--gradient-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(14, 165, 233, 0.12);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+    
+    .tips-card h3 {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .tip-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .tip-item:last-child {
+        border-bottom: none;
+    }
+    
+    .tip-icon {
+        color: var(--primary-light);
+        flex-shrink: 0;
+    }
+    
+    /* ===== SIDEBAR STYLES ===== */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+        border-right: 1px solid var(--border);
+    }
+    
+    section[data-testid="stSidebar"] > div {
+        padding-top: 2rem;
+    }
+    
+    .sidebar-profile {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--gradient-card);
+        border-radius: 20px;
+        margin: 0 1rem 1.5rem 1rem;
+        border: 1px solid rgba(14, 165, 233, 0.12);
+    }
+    
+    .sidebar-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin: 0 auto 1rem auto;
+        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.35);
+        border: 3px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-name {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .sidebar-email {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        word-break: break-all;
+    }
+    
+    .sidebar-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        background: rgba(16, 185, 129, 0.15);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: var(--success);
+        margin-top: 0.75rem;
+    }
+    
+    .sidebar-status::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: var(--success);
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+    }
+    
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* ===== BUTTON STYLES ===== */
+    .stButton > button {
+        background: var(--gradient-primary) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3) !important;
+        text-transform: none !important;
     }
     
     .stButton > button:hover {
-        transform: scale(1.02);
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4) !important;
     }
     
-    /* Progress indicator */
-    .upload-progress {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-        padding: 1rem 2rem;
-        color: white;
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+    
+    /* Secondary button style */
+    .stButton > button[kind="secondary"] {
+        background: transparent !important;
+        border: 2px solid var(--primary) !important;
+        color: var(--primary-light) !important;
+        box-shadow: none !important;
+    }
+    
+    .stButton > button[kind="secondary"]:hover {
+        background: rgba(14, 165, 233, 0.1) !important;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2) !important;
+    }
+    
+    /* ===== INPUT STYLES ===== */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 2px solid var(--border) !important;
+        border-radius: 12px !important;
+        color: var(--text-primary) !important;
+        padding: 0.875rem 1rem !important;
+        font-size: 0.95rem !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder,
+    .stTextArea > div > div > textarea::placeholder {
+        color: var(--text-muted) !important;
+    }
+    
+    /* Label styling */
+    .stTextInput > label,
+    .stTextArea > label,
+    .stFileUploader > label {
+        color: var(--text-secondary) !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* ===== FILE UPLOADER ===== */
+    .stFileUploader > div > div {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 2px dashed var(--border) !important;
+        border-radius: 16px !important;
+        padding: 2rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stFileUploader > div > div:hover {
+        border-color: var(--primary) !important;
+        background: rgba(14, 165, 233, 0.05) !important;
+    }
+    
+    /* ===== RADIO BUTTONS (Navigation) ===== */
+    .stRadio > div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .stRadio > div > label {
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid transparent !important;
+        border-radius: 12px !important;
+        padding: 0.875rem 1rem !important;
+        color: var(--text-secondary) !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+    }
+    
+    .stRadio > div > label:hover {
+        background: rgba(14, 165, 233, 0.1) !important;
+        border-color: rgba(14, 165, 233, 0.3) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .stRadio > div > label[data-checked="true"] {
+        background: var(--gradient-primary) !important;
+        border-color: transparent !important;
+        color: white !important;
+    }
+    
+    /* ===== ALERTS & MESSAGES ===== */
+    .stSuccess {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--success) !important;
+    }
+    
+    .stError {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--error) !important;
+    }
+    
+    .stWarning {
+        background: rgba(245, 158, 11, 0.1) !important;
+        border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--warning) !important;
+    }
+    
+    .stInfo {
+        background: rgba(14, 165, 233, 0.1) !important;
+        border: 1px solid rgba(14, 165, 233, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--primary-light) !important;
+    }
+    
+    /* ===== PROGRESS BAR ===== */
+    .stProgress > div > div {
+        background: var(--border) !important;
+        border-radius: 10px !important;
+    }
+    
+    .stProgress > div > div > div {
+        background: var(--gradient-primary) !important;
+        border-radius: 10px !important;
+    }
+    
+    /* ===== SPINNER ===== */
+    .stSpinner > div {
+        border-color: var(--primary) transparent transparent transparent !important;
+    }
+    
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
         text-align: center;
-        animation: pulse 1.5s ease-in-out infinite;
+        padding: 4rem 2rem;
+        background: var(--gradient-card);
+        border-radius: 24px;
+        border: 1px solid rgba(14, 165, 233, 0.12);
     }
     
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        display: block;
+        opacity: 0.8;
     }
     
-    /* Stats cards */
-    .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    .empty-state h2 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
     
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #667eea;
+    .empty-state p {
+        color: var(--text-muted);
+        font-size: 1rem;
     }
     
-    .stat-label {
-        color: #888;
-        font-size: 0.9rem;
+    /* ===== DIVIDERS ===== */
+    hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        margin: 1.5rem 0;
+    }
+    
+    /* ===== MEDIA CONTAINER ===== */
+    .media-container {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--bg-dark);
+        margin: 1rem 0;
+    }
+    
+    .media-container img,
+    .media-container video {
+        border-radius: 16px;
+        width: 100%;
+    }
+    
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    
+    .loading-shimmer {
+        background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    
+    /* ===== IMAGE/VIDEO STYLING ===== */
+    .stImage > img {
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .stVideo > video {
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* ===== MARKDOWN TEXT ===== */
+    .stMarkdown {
+        color: var(--text-secondary);
+    }
+    
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+    @media (max-width: 768px) {
+        .hero-header {
+            padding: 2rem 1rem;
+        }
+        
+        .hero-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .login-container {
+            padding: 2rem 1.5rem;
+            margin: 1rem;
+        }
+        
+        .sidebar-profile {
+            margin: 0 0.5rem 1rem 0.5rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -197,23 +731,32 @@ def get_initials(email):
     """Get initials from email for avatar"""
     return email[0].upper() if email else "U"
 
+def format_date(date_string):
+    """Format date string to a more readable format"""
+    try:
+        dt = datetime.fromisoformat(date_string.replace('Z', '+00:00'))
+        return dt.strftime("%b %d, %Y")
+    except:
+        return date_string[:10] if date_string else ""
+
 def login_page():
-    # Centered login form
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Centered login form with modern design
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     
     with col2:
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h1 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                       font-size: 3rem; margin-bottom: 0.5rem;">📸 SocialVibe</h1>
-            <p style="color: #666; font-size: 1.1rem;">Share your moments with the world</p>
+        <div class="login-container">
+            <div class="login-logo">
+                <span class="logo-icon">✨</span>
+                <h1>SocialVibe</h1>
+                <p>Share your moments with the world</p>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("---")
+        st.markdown('<div class="login-divider"><span>Sign in to continue</span></div>', unsafe_allow_html=True)
         
-        email = st.text_input("📧 Email", placeholder="Enter your email...")
+        email = st.text_input("📧 Email Address", placeholder="Enter your email...")
         password = st.text_input("🔒 Password", type="password", placeholder="Enter your password...")
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -222,46 +765,60 @@ def login_page():
             col_btn1, col_btn2 = st.columns(2)
             
             with col_btn1:
-                if st.button("🚀 Login", type="primary", use_container_width=True):
-                    with st.spinner("Logging in..."):
+                if st.button("🚀 Sign In", type="primary", use_container_width=True):
+                    with st.spinner("Authenticating..."):
                         login_data = {"username": email, "password": password}
-                        response = requests.post("http://localhost:8001/authjwt/login", data=login_data)
-                        
-                        if response.status_code == 200:
-                            token_data = response.json()
-                            st.session_state.token = token_data["access_token"]
+                        try:
+                            response = requests.post("http://localhost:8001/authjwt/login", data=login_data)
                             
-                            user_response = requests.get("http://localhost:8001/users/me", headers=get_headers())
-                            if user_response.status_code == 200:
-                                st.session_state.user = user_response.json()
-                                st.balloons()
-                                st.rerun()
+                            if response.status_code == 200:
+                                token_data = response.json()
+                                st.session_state.token = token_data["access_token"]
+                                
+                                user_response = requests.get("http://localhost:8001/users/me", headers=get_headers())
+                                if user_response.status_code == 200:
+                                    st.session_state.user = user_response.json()
+                                    st.balloons()
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to fetch user info.")
                             else:
-                                st.error("❌ Failed to fetch user info.")
-                        else:
-                            st.error("❌ Login failed. Please check your credentials.")
+                                st.error("❌ Invalid credentials. Please try again.")
+                        except requests.exceptions.ConnectionError:
+                            st.error("❌ Cannot connect to server. Please ensure the backend is running.")
             
             with col_btn2:
-                if st.button("✨ Sign Up", type="secondary", use_container_width=True):
-                    with st.spinner("Creating account..."):
+                if st.button("✨ Create Account", type="secondary", use_container_width=True):
+                    with st.spinner("Creating your account..."):
                         signup_data = {"email": email, "password": password}
-                        response = requests.post("http://localhost:8001/authjwt/register", json=signup_data)
-                        
-                        if response.status_code == 201:
-                            st.success("🎉 Registration successful! Please log in.")
-                        else:
-                            error_detail = response.json().get('detail', 'Unknown error')
-                            if 'ALREADY_EXISTS' in str(error_detail):
-                                st.warning("⚠️ This email is already registered. Try logging in!")
+                        try:
+                            response = requests.post("http://localhost:8001/authjwt/register", json=signup_data)
+                            
+                            if response.status_code == 201:
+                                st.success("🎉 Account created successfully! You can now sign in.")
                             else:
-                                st.error(f"❌ Registration failed: {error_detail}")
+                                error_detail = response.json().get('detail', 'Unknown error')
+                                if 'ALREADY_EXISTS' in str(error_detail):
+                                    st.warning("⚠️ This email is already registered. Try signing in!")
+                                else:
+                                    st.error(f"❌ Registration failed: {error_detail}")
+                        except requests.exceptions.ConnectionError:
+                            st.error("❌ Cannot connect to server. Please ensure the backend is running.")
         else:
-            st.info("👆 Please enter both email and password to continue.")
+            st.markdown("""
+            <div style="text-align: center; padding: 1rem; background: rgba(14, 165, 233, 0.1); 
+                        border-radius: 12px; border: 1px solid rgba(14, 165, 233, 0.2);">
+                <p style="color: #38bdf8; margin: 0; font-size: 0.95rem;">
+                    👆 Enter your credentials to get started
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
 def upload_page():
     st.markdown("""
-    <div class="main-header">
-        <h1>📤 Create New Post</h1>
+    <div class="hero-header">
+        <span class="hero-icon">📤</span>
+        <h1>Create New Post</h1>
         <p>Share your photos and videos with the community</p>
     </div>
     """, unsafe_allow_html=True)
@@ -270,14 +827,14 @@ def upload_page():
     
     with col1:
         uploaded_file = st.file_uploader(
-            "📷 Choose your media",
+            "📷 Choose your media file",
             type=['png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'mkv', 'webm'],
             help="Supported formats: PNG, JPG, JPEG, GIF, MP4, AVI, MOV, MKV, WEBM"
         )
         
         caption = st.text_area(
-            "✍️ Caption",
-            placeholder="Write something about your post...",
+            "✍️ Write a caption",
+            placeholder="What's on your mind? Share your story...",
             height=120
         )
         
@@ -286,7 +843,7 @@ def upload_page():
             st.markdown("### 👁️ Preview")
             
             if uploaded_file.type.startswith('image'):
-                st.image(uploaded_file, width=400)
+                st.image(uploaded_file, width=500)
             else:
                 st.video(uploaded_file)
             
@@ -294,7 +851,7 @@ def upload_page():
             
             if st.button("🚀 Share Post", type="primary", use_container_width=True):
                 # Show progress
-                progress_bar = st.progress(0, text="Preparing upload...")
+                progress_bar = st.progress(0, text="Preparing your post...")
                 status_text = st.empty()
                 
                 try:
@@ -303,14 +860,19 @@ def upload_page():
                     data = {"caption": caption}
                     
                     progress_bar.progress(40, text="Uploading to server...")
-                    status_text.markdown("⏳ *Uploading your media... This may take a moment for larger files.*")
+                    status_text.markdown("""
+                    <div style="padding: 1rem; background: rgba(14, 165, 233, 0.1); border-radius: 12px; 
+                                border: 1px solid rgba(14, 165, 233, 0.2); text-align: center;">
+                        <p style="color: #38bdf8; margin: 0;">⏳ Uploading... This may take a moment for larger files.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     response = requests.post(
                         "http://localhost:8001/upload",
                         headers=get_headers(),
                         files=files,
                         data=data,
-                        timeout=120  # 2 minute timeout for large files
+                        timeout=120
                     )
                     
                     progress_bar.progress(80, text="Processing...")
@@ -318,10 +880,9 @@ def upload_page():
                     if response.status_code == 200:
                         progress_bar.progress(100, text="Complete!")
                         status_text.empty()
-                        st.success("🎉 Post uploaded successfully!")
+                        st.success("🎉 Your post has been shared successfully!")
                         st.balloons()
                         
-                        # Brief delay then redirect to feed
                         import time
                         time.sleep(1)
                         st.session_state.page = "Feed"
@@ -342,121 +903,130 @@ def upload_page():
     
     with col2:
         st.markdown("""
-        ### 💡 Tips
-        
-        - **Images**: Best results with PNG or JPEG
-        - **Videos**: MP4 format recommended
-        - **Size**: Keep files under 50MB for faster uploads
-        - **Captions**: Add context to engage viewers!
-        """)
+        <div class="tips-card">
+            <h3>💡 Pro Tips</h3>
+            <div class="tip-item">
+                <span class="tip-icon">📸</span>
+                <span><strong>Images:</strong> PNG or JPEG work best</span>
+            </div>
+            <div class="tip-item">
+                <span class="tip-icon">🎬</span>
+                <span><strong>Videos:</strong> MP4 format recommended</span>
+            </div>
+            <div class="tip-item">
+                <span class="tip-icon">📦</span>
+                <span><strong>Size:</strong> Keep files under 50MB</span>
+            </div>
+            <div class="tip-item">
+                <span class="tip-icon">💬</span>
+                <span><strong>Captions:</strong> Add context to engage!</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 def feed_page():
     st.markdown("""
-    <div class="main-header">
-        <h1>🏠 Your Feed</h1>
-        <p>See what's happening in your community</p>
+    <div class="hero-header">
+        <span class="hero-icon">🏠</span>
+        <h1>Your Feed</h1>
+        <p>Discover what's happening in your community</p>
     </div>
     """, unsafe_allow_html=True)
     
-    with st.spinner("Loading feed..."):
-        response = requests.get("http://localhost:8001/feed", headers=get_headers())
-    
-    if response.status_code == 200:
-        posts = response.json()["posts"]
+    try:
+        with st.spinner("Loading your feed..."):
+            response = requests.get("http://localhost:8001/feed", headers=get_headers())
         
-        if not posts:
-            st.markdown("""
-            <div style="text-align: center; padding: 3rem;">
-                <h2>📭 No posts yet!</h2>
-                <p style="color: #666;">Be the first to share something amazing.</p>
-            </div>
-            """, unsafe_allow_html=True)
+        if response.status_code == 200:
+            posts = response.json()["posts"]
             
-            if st.button("📤 Create Your First Post", type="primary"):
-                st.session_state.page = "Upload"
-                st.rerun()
-            return
-        
-        # Display posts in a nice grid
-        for post in posts:
-            with st.container():
-                # Post card
-                col1, col2 = st.columns([6, 1])
+            if not posts:
+                st.markdown("""
+                <div class="empty-state">
+                    <span class="empty-state-icon">📭</span>
+                    <h2>No posts yet!</h2>
+                    <p>Be the first to share something amazing with the community.</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                with col1:
-                    # User info with avatar
-                    email = post.get('email', 'Unknown')
-                    initial = get_initials(email)
-                    date = post['created_at'][:10] if post.get('created_at') else ''
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                if st.button("📤 Create Your First Post", type="primary", use_container_width=True):
+                    st.session_state.page = "Upload"
+                    st.rerun()
+                return
+            
+            # Display posts with modern card design
+            for idx, post in enumerate(posts):
+                with st.container():
+                    # Post card header
+                    col1, col2 = st.columns([6, 1])
                     
-                    st.markdown(f"""
-                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; 
-                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                    display: flex; align-items: center; justify-content: center;
-                                    color: white; font-weight: bold; margin-right: 10px;">
-                            {initial}
+                    with col1:
+                        email = post.get('email', 'Unknown')
+                        initial = get_initials(email)
+                        date = format_date(post.get('created_at', ''))
+                        
+                        st.markdown(f"""
+                        <div class="post-header">
+                            <div class="avatar">{initial}</div>
+                            <div class="user-info">
+                                <div class="username">{email}</div>
+                                <div class="post-date">📅 {date}</div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-weight: 600; color: #333;">{email}</div>
-                            <div style="color: #888; font-size: 0.85rem;">📅 {date}</div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        if post.get('isowner', False):
+                            if st.button("🗑️", key=f"delete_{post['id']}", help="Delete this post"):
+                                with st.spinner("Deleting..."):
+                                    del_response = requests.delete(
+                                        f"http://localhost:8001/posts/{post['id']}",
+                                        headers=get_headers()
+                                    )
+                                    if del_response.status_code == 200:
+                                        st.success("Post deleted successfully!")
+                                        st.rerun()
+                                    else:
+                                        st.error("Failed to delete post.")
+                    
+                    # Media display
+                    if post['file_type'] == "image":
+                        st.image(post['url'], use_container_width=True)
+                    else:
+                        st.video(post['url'])
+                    
+                    # Caption
+                    caption = post.get("caption", "")
+                    if caption:
+                        st.markdown(f"""
+                        <div class="caption">
+                            💬 {caption}
                         </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    if post.get('isowner', False):
-                        if st.button("🗑️", key=f"delete_{post['id']}", help="Delete this post"):
-                            with st.spinner("Deleting..."):
-                                del_response = requests.delete(
-                                    f"http://localhost:8001/posts/{post['id']}",
-                                    headers=get_headers()
-                                )
-                                if del_response.status_code == 200:
-                                    st.success("Post deleted!")
-                                    st.rerun()
-                                else:
-                                    st.error("Failed to delete post.")
-                
-                # Media display - FIXED: using width instead of deprecated use_column_width
-                if post['file_type'] == "image":
-                    st.image(post['url'], width=600)
-                else:
-                    st.video(post['url'])
-                
-                # Caption
-                caption = post.get("caption", "")
-                if caption:
-                    st.markdown(f"""
-                    <div style="padding: 0.5rem 0; color: #444; font-size: 1rem;">
-                        💬 {caption}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                st.markdown("---")
-    else:
-        st.error("❌ Failed to load feed. Please try again.")
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+        else:
+            st.error("❌ Failed to load feed. Please try again.")
+    except requests.exceptions.ConnectionError:
+        st.error("❌ Cannot connect to server. Please ensure the backend is running.")
 
 # Main app logic
 if st.session_state.user is None:
     login_page()
 else:
-    # Sidebar with user info
+    # Sidebar with modern design
     with st.sidebar:
         user_email = st.session_state.user.get('email', 'User')
         initial = get_initials(user_email)
         
         st.markdown(f"""
-        <div style="text-align: center; padding: 1rem;">
-            <div style="width: 80px; height: 80px; border-radius: 50%; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        display: flex; align-items: center; justify-content: center;
-                        color: white; font-weight: bold; font-size: 2rem;
-                        margin: 0 auto 1rem auto;">
-                {initial}
-            </div>
-            <h3 style="margin: 0; color: #333;">Welcome!</h3>
-            <p style="color: #666; font-size: 0.9rem; word-break: break-all;">{user_email}</p>
+        <div class="sidebar-profile">
+            <div class="sidebar-avatar">{initial}</div>
+            <div class="sidebar-name">Welcome back!</div>
+            <div class="sidebar-email">{user_email}</div>
+            <div class="sidebar-status">Online</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -464,14 +1034,22 @@ else:
         
         # Navigation
         page = st.radio(
-            "📍 Navigate",
+            "Navigate",
             ["🏠 Feed", "📤 Upload"],
             label_visibility="collapsed"
         )
         
         st.markdown("---")
         
-        if st.button("🚪 Logout", use_container_width=True):
+        # Quick stats placeholder
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem; background: rgba(30, 41, 59, 0.6); 
+                    border-radius: 12px; margin-bottom: 1rem;">
+            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">✨ Share moments that matter</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🚪 Sign Out", use_container_width=True):
             st.session_state.token = None
             st.session_state.user = None
             st.rerun()
