@@ -18,27 +18,27 @@ st.markdown("""
     /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* CSS Variables for theming - Professional Blue/Grey/Black */
+    /* CSS Variables - Refined Dark Theme */
     :root {
-        --primary: #0ea5e9;
-        --primary-dark: #0284c7;
-        --primary-light: #38bdf8;
-        --secondary: #06b6d4;
-        --accent: #22d3ee;
-        --success: #10b981;
-        --warning: #f59e0b;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary: #8b5cf6;
+        --accent: #a78bfa;
+        --success: #22c55e;
+        --warning: #eab308;
         --error: #ef4444;
-        --bg-dark: #0a0a0f;
-        --bg-card: #15151d;
-        --bg-card-hover: #1f1f2a;
-        --text-primary: #f8fafc;
+        --bg-dark: #0c0c0e;
+        --bg-card: #18181b;
+        --bg-card-hover: #1f1f23;
+        --text-primary: #fafafa;
         --text-secondary: #a1a1aa;
         --text-muted: #71717a;
-        --border: #27272f;
-        --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #22d3ee 100%);
-        --gradient-card: linear-gradient(145deg, rgba(21, 21, 29, 0.95), rgba(10, 10, 15, 0.98));
-        --shadow-glow: 0 0 40px rgba(14, 165, 233, 0.12);
-        --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.5);
+        --border: #27272a;
+        --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-card: linear-gradient(145deg, rgba(24, 24, 27, 0.98), rgba(12, 12, 14, 0.99));
+        --shadow-glow: 0 0 50px rgba(99, 102, 241, 0.08);
+        --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     
     /* Global styles */
@@ -48,22 +48,20 @@ st.markdown("""
     
     /* Main app background */
     .stApp {
-        background: linear-gradient(180deg, #0a0a0f 0%, #0d1117 50%, #0a0a0f 100%);
-        background-attachment: fixed;
+        background: #0c0c0e;
     }
     
-    /* Add subtle animated background pattern */
+    /* Subtle ambient glow */
     .stApp::before {
         content: '';
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
         background: 
-            radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(34, 211, 238, 0.03) 0%, transparent 40%);
+            radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.03) 0%, transparent 40%);
         pointer-events: none;
         z-index: 0;
     }
@@ -95,27 +93,25 @@ st.markdown("""
     
     /* ===== HEADER STYLES ===== */
     .hero-header {
-        background: var(--gradient-card);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(14, 165, 233, 0.2);
-        border-radius: 24px;
-        padding: 3rem 2rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
         margin-bottom: 2rem;
         text-align: center;
         position: relative;
-        overflow: hidden;
-        box-shadow: var(--shadow-glow);
     }
     
     .hero-header::before {
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
         height: 3px;
         background: var(--gradient-primary);
+        border-radius: 3px;
     }
     
     .hero-header h1 {
