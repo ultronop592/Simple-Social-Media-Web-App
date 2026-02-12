@@ -8,3 +8,26 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Environment variables (ADD THIS SECTION)
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
