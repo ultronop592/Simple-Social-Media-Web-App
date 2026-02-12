@@ -11,7 +11,18 @@ from fastapi import Depends
 
 
 
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+
+# Fix for Render providing 'postgres://' instead of 'postgresql://'
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    # Ensure usage of asyncpg driver if not specified
+    if "asyncpg" not in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 
 
 class Base(DeclarativeBase):
