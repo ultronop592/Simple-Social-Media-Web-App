@@ -958,13 +958,13 @@ def login_page():
                     with st.spinner("Authenticating..."):
                         login_data = {"username": email, "password": password}
                         try:
-                            response = requests.post("http://localhost:8001/authjwt/login", data=login_data)
+                            response = requests.post("https://simple-social-media-web-app-5.onrender.com/authjwt/login", data=login_data)
                             
                             if response.status_code == 200:
                                 token_data = response.json()
                                 st.session_state.token = token_data["access_token"]
                                 
-                                user_response = requests.get("http://localhost:8001/users/me", headers=get_headers())
+                                user_response = requests.get("https://simple-social-media-web-app-5.onrender.com/users/me", headers=get_headers())
                                 if user_response.status_code == 200:
                                     st.session_state.user = user_response.json()
                                     st.success("Welcome back!")
@@ -981,7 +981,7 @@ def login_page():
                     with st.spinner("Creating your account..."):
                         signup_data = {"email": email, "password": password}
                         try:
-                            response = requests.post("http://localhost:8001/authjwt/register", json=signup_data)
+                            response = requests.post("https://simple-social-media-web-app-5.onrender.com/authjwt/register", json=signup_data)
                             
                             if response.status_code == 201:
                                 st.success("Account created! You can now sign in.")
@@ -1056,7 +1056,7 @@ def upload_page():
                     """, unsafe_allow_html=True)
                     
                     response = requests.post(
-                        "http://localhost:8001/upload",
+                        "https://simple-social-media-web-app-5.onrender.com/upload",
                         headers=get_headers(),
                         files=files,
                         data=data,
@@ -1121,7 +1121,7 @@ def feed_page():
     
     try:
         with st.spinner("Loading your feed..."):
-            response = requests.get("http://localhost:8001/feed", headers=get_headers())
+            response = requests.get("https://simple-social-media-web-app-5.onrender.com/feed", headers=get_headers())
         
         if response.status_code == 200:
             posts = response.json()["posts"]
@@ -1167,7 +1167,7 @@ def feed_page():
                             if st.button("🗑️", key=f"delete_{post['id']}", help="Delete this post"):
                                 with st.spinner("Deleting..."):
                                     del_response = requests.delete(
-                                        f"http://localhost:8001/posts/{post['id']}",
+                                        f"https://simple-social-media-web-app-5.onrender.com/posts/{post['id']}",
                                         headers=get_headers()
                                     )
                                     if del_response.status_code == 200:
